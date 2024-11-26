@@ -10,6 +10,8 @@ import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.compiler import transpile
 from variousfunctions import pad_to_n_qubits
+import variousfunctions as vf
+from qiskit.circuit.library.generalized_gates import Isometry
 
 def matrix_circuit(matrix, qregs=None):
     # Create a quantum circuit for matrix multiplication
@@ -59,7 +61,62 @@ def input_circuit(vec, qregs=None):
     else:
         vc = QuantumCircuit(qregs, name='Bus injection')
         
-    vc.isometry(vector, list(range(nb)), None)
+    vc.append(Isometry(vector, 0, 0),list(np.arange(nb)))
     vector_circuit = transpile(vc, basis_gates=["u1","u2","u3","cx"], optimization_level=1)
     
     return vector_circuit, vec_norm
+
+
+def lcu_circuit(matrix):
+    # Create a quantum circuit for a matrix based on linear combination of unitaries
+    
+    size_mat = matrix.shape
+    nb = int(np.ceil(np.log2(size_mat[0])))
+    nc = int(np.ceil(np.log2(size_mat[1])))
+    
+    # # Perform Singular Value Decomposition
+    # u, s, vh = sp.linalg.svd(matrix)
+    
+    # # Change the singular value vector to a matrix with norm=1
+    # s = np.diag(s)
+    # mat_norm = np.linalg.norm(s)
+    # s = s/mat_norm
+    
+    if not vf.isunitary(matrix):
+        if not vf.ishermitian(matrix):
+            mat = vf.hermitian_matrix(matrix)
+        else:
+            mat = matrix
+        mat_norm = np.linalg.norm(mat)
+        mat = mat/mat_norm
+    
+        # Split it into a unitary matrices
+        UB, VB, UC, VC = vf.decompose_to_unitary(mat)
+        
+        # Pad the matrices to fit to N qubits
+        tmp_UB = vf.pad_to_n_qubits(UB)
+        tmp_VB = vf.pad_to_n_qubits(VB)
+        
+        # Add control qubit for the LCU
+        UB_ctrl = vf.compute_control_matrix(tmp_UB, 1, ctrl_state=0)
+        VB_ctrl = vf.compute_control_matrix(tmp_VB, 1, ctrl_state=1)
+        
+        # Combine the two LCU matrices into a single unitary matrix
+        UV = UB_ctrl@VB_ctrl
+        
+        # Build the quantum circuit
+        mat_circuit = QuantumCircuit(max(nb,nc)+1, name='LCU')
+
+        mat_circuit.h(0)
+        mat_circuit.unitary(UV,list(np.arange(min(nb,nc)+1)))
+        mat_circuit.h(0)
+    else:
+        mat_norm = 1
+        mat_circuit = QuantumCircuit(max(nb,nc)+1, name='Unitary')
+
+        mat_circuit.unitary(matrix,list(np.arange(1,nb+1)))
+    
+    # t_circ0 = transpile(mat_circuit, basis_gates=['id', 'rz', 'sx', 'x', 'cx'], optimization_level=3)
+    # print('Circuit depth (real qc):',t_circ0.depth())
+    
+    return mat_circuit, mat_norm

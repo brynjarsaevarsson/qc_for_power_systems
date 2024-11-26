@@ -570,7 +570,7 @@ def expand_matrix_scale(PTDF, nqb):
 def expand_matrix(mat, nqb, rmzeros=False):
     def build_mat(weights, nbin):
         nbus = len(weights) 
-        sm = np.zeros(nbin**nbus)
+        # out = np.zeros(nbin**nbus - (nbus-1))
         
         r = np.arange(nbin)
 
@@ -583,16 +583,25 @@ def expand_matrix(mat, nqb, rmzeros=False):
         #         else:
         #             wvec = np.kron(I,wvec)
         #     sm += wvec
-            
-        sm = np.zeros(1)
+        # for i in range(len(out)):
+        #     out[i] = weights[0]
+        # out = np.unique(np.concatenate([abs(r*w) for w in weights]))
+  
+        sm = np.zeros(1,dtype=int)
         for bus in range(nbus):
-            wvec = weights[bus]*r
+            wvec = int(weights[bus])*r
             sm = kronsum(wvec, sm)
             
         sm = abs(sm)
+        out = np.unique(sm)
         mx = int(np.max(sm))
         tmp_mat = np.zeros((Nk,Na))
-        for i in range(mx+1):
+        # for i in range(mx+1):
+        #     # if len(np.flatnonzero(sm==i))>0:
+        #     #     print(np.flatnonzero(sm==i),i)
+        #     tmp_mat[i,np.flatnonzero(sm==i)] = 1
+            
+        for i in out:
             tmp_mat[i,np.flatnonzero(sm==i)] = 1
         return tmp_mat
 
@@ -831,8 +840,8 @@ def normalize_rows(mat,tol=1e-9):
     
 def kronsum(A, B):
     # Calculate the kronecker sum of two vectors
-    In = np.ones(B.size)
-    Im = np.ones(A.size)
+    In = np.ones(B.size,B.dtype)
+    Im = np.ones(A.size,A.dtype)
     return np.kron(A,In) + np.kron(Im,B)
 
 

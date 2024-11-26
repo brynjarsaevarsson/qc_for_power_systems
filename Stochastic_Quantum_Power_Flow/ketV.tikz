@@ -1,0 +1,63 @@
+% This file was created with tikzplotlib v0.10.1.
+\begin{tikzpicture}
+
+\definecolor{darkgray176}{RGB}{176,176,176}
+\definecolor{darkorange25512714}{RGB}{255,127,14}
+\definecolor{lightgray204}{RGB}{204,204,204}
+\definecolor{steelblue31119180}{RGB}{31,119,180}
+
+\begin{axis}[
+legend cell align={left},
+legend style={fill opacity=0.8, draw opacity=1, text opacity=1, draw=lightgray204},
+tick align=outside,
+tick pos=left,
+x grid style={darkgray176},
+xlabel={Measured value},
+xmin=-1.025, xmax=16.025,
+xtick style={color=black},
+y grid style={darkgray176},
+ylabel={Probability (\%)},
+ymin=0, ymax=28,
+ytick style={color=black}
+]
+\draw[draw=none,fill=steelblue31119180] (axis cs:-0.25,0) rectangle (axis cs:0.25,11.71875);
+\addlegendimage{ybar,ybar legend,draw=none,fill=steelblue31119180}
+\addlegendentry{Sim}
+
+\draw[draw=none,fill=steelblue31119180] (axis cs:0.75,0) rectangle (axis cs:1.25,8.0078125);
+\draw[draw=none,fill=steelblue31119180] (axis cs:1.75,0) rectangle (axis cs:2.25,5.76171875);
+\draw[draw=none,fill=steelblue31119180] (axis cs:2.75,0) rectangle (axis cs:3.25,0.87890625);
+\draw[draw=none,fill=steelblue31119180] (axis cs:3.75,0) rectangle (axis cs:4.25,1.26953125);
+\draw[draw=none,fill=steelblue31119180] (axis cs:4.75,0) rectangle (axis cs:5.25,1.7578125);
+\draw[draw=none,fill=steelblue31119180] (axis cs:5.75,0) rectangle (axis cs:6.25,7.6171875);
+\draw[draw=none,fill=steelblue31119180] (axis cs:6.75,0) rectangle (axis cs:7.25,0.48828125);
+\draw[draw=none,fill=steelblue31119180] (axis cs:7.75,0) rectangle (axis cs:8.25,11.9140625);
+\draw[draw=none,fill=steelblue31119180] (axis cs:8.75,0) rectangle (axis cs:9.25,0.29296875);
+\draw[draw=none,fill=steelblue31119180] (axis cs:9.75,0) rectangle (axis cs:10.25,13.96484375);
+\draw[draw=none,fill=steelblue31119180] (axis cs:10.75,0) rectangle (axis cs:11.25,8.69140625);
+\draw[draw=none,fill=steelblue31119180] (axis cs:11.75,0) rectangle (axis cs:12.25,0);
+\draw[draw=none,fill=steelblue31119180] (axis cs:12.75,0) rectangle (axis cs:13.25,10.9375);
+\draw[draw=none,fill=steelblue31119180] (axis cs:13.75,0) rectangle (axis cs:14.25,0.09765625);
+\draw[draw=none,fill=steelblue31119180] (axis cs:14.75,0) rectangle (axis cs:15.25,16.6015625);
+\draw[draw=none,fill=darkorange25512714] (axis cs:-0.125,0) rectangle (axis cs:0.125,7.5927734375);
+\addlegendimage{ybar,ybar legend,draw=none,fill=darkorange25512714}
+\addlegendentry{HW}
+
+\draw[draw=none,fill=darkorange25512714] (axis cs:0.875,0) rectangle (axis cs:1.125,6.15234375);
+\draw[draw=none,fill=darkorange25512714] (axis cs:1.875,0) rectangle (axis cs:2.125,7.5927734375);
+\draw[draw=none,fill=darkorange25512714] (axis cs:2.875,0) rectangle (axis cs:3.125,5.4931640625);
+\draw[draw=none,fill=darkorange25512714] (axis cs:3.875,0) rectangle (axis cs:4.125,7.1533203125);
+\draw[draw=none,fill=darkorange25512714] (axis cs:4.875,0) rectangle (axis cs:5.125,6.591796875);
+\draw[draw=none,fill=darkorange25512714] (axis cs:5.875,0) rectangle (axis cs:6.125,7.0068359375);
+\draw[draw=none,fill=darkorange25512714] (axis cs:6.875,0) rectangle (axis cs:7.125,5.908203125);
+\draw[draw=none,fill=darkorange25512714] (axis cs:7.875,0) rectangle (axis cs:8.125,5.6396484375);
+\draw[draw=none,fill=darkorange25512714] (axis cs:8.875,0) rectangle (axis cs:9.125,5.7373046875);
+\draw[draw=none,fill=darkorange25512714] (axis cs:9.875,0) rectangle (axis cs:10.125,5.6396484375);
+\draw[draw=none,fill=darkorange25512714] (axis cs:10.875,0) rectangle (axis cs:11.125,5.419921875);
+\draw[draw=none,fill=darkorange25512714] (axis cs:11.875,0) rectangle (axis cs:12.125,6.6162109375);
+\draw[draw=none,fill=darkorange25512714] (axis cs:12.875,0) rectangle (axis cs:13.125,5.2490234375);
+\draw[draw=none,fill=darkorange25512714] (axis cs:13.875,0) rectangle (axis cs:14.125,6.494140625);
+\draw[draw=none,fill=darkorange25512714] (axis cs:14.875,0) rectangle (axis cs:15.125,5.712890625);
+\end{axis}
+
+\end{tikzpicture}

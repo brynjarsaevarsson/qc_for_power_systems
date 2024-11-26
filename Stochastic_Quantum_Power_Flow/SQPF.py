@@ -16,7 +16,8 @@ import Classical_Functions.power_systems as ps
 from Classical_Functions.power_flow import PowerFlowNewton, PowerFlowDC
 
 from qiskit.compiler import transpile
-from qiskit import QuantumCircuit, Aer
+from qiskit import QuantumCircuit#, Aer
+import qiskit_aer as Aer
 
 from qiskit import QuantumRegister
 
@@ -25,14 +26,19 @@ from variousfunctions import expand_matrix, vec_to_unitary, counts_to_probs
 
 from qiskit_aer.primitives import Sampler
 
-from qiskit.algorithms import IterativeAmplitudeEstimation, EstimationProblem
+from qiskit_algorithms import IterativeAmplitudeEstimation, EstimationProblem
 
 import string
-from qiskit.quantum_info.synthesis import qsd
-import qiskit.quantum_info as qi
+
 from qiskit.result import marginal_counts
 
-from qiskit_ibm_provider import IBMProvider
+from qiskit_ibm_runtime import QiskitRuntimeService
+
+import json
+from qiskit_ibm_runtime import RuntimeEncoder
+from qiskit_ibm_runtime import RuntimeDecoder
+
+# from tikzplotlib import save as tikz_save
 
 np.random.seed(1234)
 
@@ -200,13 +206,12 @@ plt.ylabel('Probability of scenario %',fontsize=FS)
 plt.xlabel('Scenario',fontsize=FS)
 
 #%% Run the bus distribution circuit on real and simulated QC (First step)
-my_provider = IBMProvider()
 
-# large_enough_devices = my_provider.backends(filters=lambda x: x.configuration().n_qubits >= vqc.num_qubits and
-#                                                     not x.configuration().simulator) 
 
-# backend_hw = least_busy(large_enough_devices)
-backend_sim = Aer.get_backend('aer_simulator')
+# Load saved credentials
+service = QiskitRuntimeService() 
+                                            
+backend_sim = Aer.AerSimulator()
 
 
 # Run on a simulator
@@ -229,27 +234,44 @@ counts_sim = result_sim.get_counts()
 # counts_hw = result_hw.get_counts()
 
 # Retrieve the result from the real hardware
-retrieved_job = my_provider.backend.retrieve_job("cicn96902cefj76f37cg")
-counts_hw = retrieved_job.result().get_counts()
+# retrieved_job = service.job("cicn96902cefj76f37cg")
+# with open("retrieved_job_1.json", "w") as file:
+#     json.dump(retrieved_job.result(), file, cls=RuntimeEncoder)
+    
+with open("retrieved_job_1.json", "r") as file:
+    retrieved_job = json.load(file, cls=RuntimeDecoder)
+counts_hw = retrieved_job.get_counts()
 
 # The real hardware used different qubits than the simulator
 counts_hw = marginal_counts(counts_hw,[1,2,3,5])
 FS = 50
 
+
 # Plot the comparison
 probs_sim = counts_to_probs(counts_sim)
 probs_hw = counts_to_probs(counts_hw)
-plt.figure(figsize=(15,10))
+fig = plt.figure(figsize=(15,10))
+# ax = fig.add_subplot()
+# for axis in ['top', 'bottom', 'left', 'right']:
+#     ax.spines[axis].set_alpha(0.3)
 plt.bar(np.arange(len(probs_sim)),probs_sim*100,width=0.5,label='Sim',)
 plt.bar(np.arange(len(probs_hw)),probs_hw*100,width=0.25,label='HW')
 plt.xlabel('Measured value',fontsize=FS)
 plt.ylabel('Probability (%)',fontsize=FS)
-plt.legend(loc='upper right',fontsize=FS)
+# plt.legend(loc='upper right',fontsize=FS)
 plt.xticks(fontsize=FS)
 plt.yticks(fontsize=FS)
 plt.ylim((0,28))
+plt.legend()
 plt.tight_layout()
 
+
+
+# tikz_save('ketPsi.tikz')
+
+# tikz_save('fig.tikz',
+#             figureheight = '\\figureheight',
+#             figurewidth = '\\figurewidth')
 
 #%%
 # Create the circuit for the PTDF matrix
@@ -267,7 +289,7 @@ circuit.barrier()
 
 ##
 # Run on the statevector simulator
-backend_sv = Aer.get_backend('statevector_simulator')
+backend_sv = Aer.StatevectorSimulator()
 t_circ_sv = transpile(circuit, backend_sv)
 
 job_sv = backend_sv.run(t_circ_sv)
@@ -304,8 +326,14 @@ counts_sim = result_sim.get_counts()
 # counts_hw = result_hw.get_counts()
 
 # Retrieve the result from the real hardware
-retrieved_job = my_provider.backend.retrieve_job("ciht3gf985671v615is0")
-counts_hw = retrieved_job.result().get_counts()
+
+# retrieved_job = service.job("ciht3gf985671v615is0")
+# with open("retrieved_job_2.json", "w") as file:
+#     json.dump(retrieved_job.result(), file, cls=RuntimeEncoder)
+    
+with open("retrieved_job_2.json", "r") as file:
+    retrieved_job = json.load(file, cls=RuntimeDecoder)
+counts_hw = retrieved_job.get_counts()
 
 FS = 50
 
@@ -322,6 +350,8 @@ plt.xticks(fontsize=FS)
 plt.yticks(fontsize=FS)
 plt.ylim((0,28))
 plt.tight_layout()
+
+# tikz_save('ketL.tikz')
 
 # Calculate the estimated mean of the result
 qres = np.sqrt(probs_sim)[:len(rootsum)]*vec_norm*rootsum
@@ -344,7 +374,7 @@ for P1 in Problist:
     
     Plist.append(P1_)
 
-N = 100 # number of times to shuffle the vectors
+N = 2003 # number of times to shuffle the vectors
 rng = np.random.default_rng(1234)
 l = 10 # number of random values taken each iteration
 vals = []
@@ -362,7 +392,7 @@ mu = np.mean(vals) #
 sigma = np.std(vals)
 me = 1.96*sigma/np.sqrt(N*l)
 x = np.linspace(mu - 4*sigma, mu + 4*sigma, 100)
-
+conf_int_c = np.array([mu-me,mu+me])
 cres = np.zeros(len(outp_range))
 for i,v in enumerate(outp_range):
     cres[i] = np.sum(np.round(vals,2)==v)/(N*l)
@@ -432,7 +462,8 @@ result_sim = job_sim.result()
 counts_sim = result_sim.get_counts()
 
 # # Run on a real hardware
-# t_circ_hw = transpile(um, backend_hw)
+# t_circ_hw = transpile(um, basis_gates=basis_gates)
+# t_circ_hw.draw('mpl').savefig('3bus.pdf')
 # t_circ_hw.measure_all()
 
 # job_hw = backend_hw.run(t_circ_hw,shots=shots)
@@ -441,8 +472,16 @@ counts_sim = result_sim.get_counts()
 # counts_hw = result_hw.get_counts()
 
 # Retrieve the result from the real hardware
-retrieved_job = my_provider.backend.retrieve_job("cjsnvomiel5ovfe1suug")
-counts_hw = retrieved_job.result().get_counts()
+
+# retrieved_job = service.job("cjsnvomiel5ovfe1suug")
+
+# with open("retrieved_job_3.json", "w") as file:
+#     json.dump(retrieved_job.result(), file, cls=RuntimeEncoder)
+    
+with open("retrieved_job_3.json", "r") as file:
+    retrieved_job = json.load(file, cls=RuntimeDecoder)
+
+counts_hw = retrieved_job.get_counts()
 
 FS = 50
 
@@ -460,6 +499,10 @@ plt.yticks(fontsize=FS)
 plt.ylim((0,28))
 plt.tight_layout()
 
+# tikz_save('ketV.tikz')
+
+print('sim',probs_sim[-1],np.sqrt(probs_sim[-1])*scaling)
+print('hw',probs_hw[-1],np.sqrt(probs_hw[-1])*scaling)
 
 #%% Check the result using the statevector simulator
 
@@ -510,3 +553,20 @@ else:
     print("Estimated probability of line loading over 90pct:\t%.4f" % (np.sqrt(result.estimation_processed)*scaling*100))
     print("Confidence interval: \t[%.4f, %.4f]" % tuple(conf_int*100))
 
+
+    N = 2003 # number of times to shuffle the vectors
+    l = 10 # number of random values taken each iteration
+    vals = []
+
+    for n in range(N):
+        P = []
+        for p in Plist: # Take l random values from each distribution
+            P.append(rng.choice(p,l))
+            
+        Ps = abs(M@np.array(P)) # Compute the resulting line loading
+
+        vals.extend(list((Ps>90)*1))
+        
+    mu = np.mean(vals)*100 
+    sigma = np.std(vals)*100
+    me = 1.96*sigma/np.sqrt(N*l)
